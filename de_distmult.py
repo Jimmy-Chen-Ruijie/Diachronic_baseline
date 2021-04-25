@@ -38,9 +38,9 @@ class DE_DistMult(torch.nn.Module):
     def create_time_embedds(self):
         
         # frequency embeddings for the entities
-        self.m_freq = nn.Embedding(self.dataset.numEnt(), self.params.t_emb_dim).cuda()
-        self.d_freq = nn.Embedding(self.dataset.numEnt(), self.params.t_emb_dim).cuda()
-        self.y_freq = nn.Embedding(self.dataset.numEnt(), self.params.t_emb_dim).cuda()
+        self.m_freq = nn.Embedding(self.dataset.numEnt(), self.params.t_emb_dim).cuda() #embedding for month
+        self.d_freq = nn.Embedding(self.dataset.numEnt(), self.params.t_emb_dim).cuda() #embedding for day
+        self.y_freq = nn.Embedding(self.dataset.numEnt(), self.params.t_emb_dim).cuda() #embedding for year
 
         nn.init.xavier_uniform_(self.m_freq.weight)
         nn.init.xavier_uniform_(self.d_freq.weight)
@@ -81,15 +81,16 @@ class DE_DistMult(torch.nn.Module):
         h,r,t = self.ent_embs(heads), self.rel_embs(rels), self.ent_embs(tails)        
         h_t = self.get_time_embedd(heads, years, months, days)
         t_t = self.get_time_embedd(tails, years, months, days)
-        
-        h = torch.cat((h,h_t), 1)
-        t = torch.cat((t,t_t), 1)
+
+        #concatenate static feature with temporal feature
+        h = torch.cat((h,h_t), 1) #embedding for subject entity in diachronic way
+        t = torch.cat((t,t_t), 1) #embedding for object entity in diachronic way
         return h,r,t
         
     def forward(self, heads, rels, tails, years, months, days):
         h_embs, r_embs, t_embs = self.getEmbeddings(heads, rels, tails, years, months, days)
         
-        scores = (h_embs * r_embs) * t_embs
+        scores = (h_embs * r_embs) * t_embs #element wise product
         scores = F.dropout(scores, p=self.params.dropout, training=self.training)
         scores = torch.sum(scores, dim=1)
         

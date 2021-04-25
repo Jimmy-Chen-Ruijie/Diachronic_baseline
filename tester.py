@@ -14,8 +14,11 @@ from de_simple import DE_SimplE
 from measure import Measure
 
 class Tester:
-    def __init__(self, dataset, model_path, valid_or_test):
-        self.model = torch.load(model_path)
+    def __init__(self, dataset, model_path, valid_or_test, model_name, params):
+        instance_gen = globals()[model_name]
+        #self.model = torch.load(model_path)
+        self.model = instance_gen(dataset=dataset, params=params).to("cuda:0")
+        self.model.load_state_dict(torch.load(model_path))
         self.model.eval()
         self.dataset = dataset
         self.valid_or_test = valid_or_test

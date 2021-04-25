@@ -32,7 +32,7 @@ class DE_SimplE(torch.nn.Module):
         nn.init.xavier_uniform_(self.rel_embs_i.weight)
     
     def create_time_embedds(self):
-
+        #h:representation for head, t:representation for tail
         # frequency embeddings for the entities
         self.m_freq_h = nn.Embedding(self.dataset.numEnt(), self.params.t_emb_dim).cuda()
         self.m_freq_t = nn.Embedding(self.dataset.numEnt(), self.params.t_emb_dim).cuda()
@@ -49,7 +49,7 @@ class DE_SimplE(torch.nn.Module):
         self.y_phi_h = nn.Embedding(self.dataset.numEnt(), self.params.t_emb_dim).cuda()
         self.y_phi_t = nn.Embedding(self.dataset.numEnt(), self.params.t_emb_dim).cuda()
 
-        # frequency embeddings for the entities
+        # amplitude embeddings for the entities
         self.m_amps_h = nn.Embedding(self.dataset.numEnt(), self.params.t_emb_dim).cuda()
         self.m_amps_t = nn.Embedding(self.dataset.numEnt(), self.params.t_emb_dim).cuda()
         self.d_amps_h = nn.Embedding(self.dataset.numEnt(), self.params.t_emb_dim).cuda()
@@ -91,10 +91,12 @@ class DE_SimplE(torch.nn.Module):
         return emb
 
     def getEmbeddings(self, heads, rels, tails, years, months, days, intervals = None):
-        years = years.view(-1,1)
-        months = months.view(-1,1)
-        days = days.view(-1,1)
-        h_embs1 = self.ent_embs_h(heads)
+        years = years.view(-1,1) #(513024,1)
+        months = months.view(-1,1) #(513024,1)
+        days = days.view(-1,1) #(513024,1)
+
+        # get embedding for all samples in the batch
+        h_embs1 = self.ent_embs_h(heads) #(513024,68)
         r_embs1 = self.rel_embs_f(rels)
         t_embs1 = self.ent_embs_t(tails)
         h_embs2 = self.ent_embs_h(tails)
